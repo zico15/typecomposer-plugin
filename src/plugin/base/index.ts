@@ -15,6 +15,16 @@ export default function typeComposePlugin(): Plugin {
             project = new ProjectBuild();
 
         },
+        transformIndexHtml(html) {
+            if (!html.includes("typecompose-plugin/public/safari-polyfill.ts")) {
+                html = html.replace("<head>", `<head>
+                <script
+                type="module"
+                src="/node_modules/typecompose-plugin/public/safari-polyfill.ts"
+              ></script>`);
+            }
+            return html;
+        },
         generateBundle(options, bundle) {
 
         },

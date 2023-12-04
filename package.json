@@ -40,7 +40,8 @@
   "files": [
     "*.d.ts",
     "dist",
-    "pwa"
+    "pwa",
+    "public"
   ],
   "engines": {
     "node": ">=16.0.0"

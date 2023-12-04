@@ -1,4 +1,5 @@
 import { PWDOptions } from ".";
+import { notification } from "./notification";
 
 
 export function register(options: PWDOptions, indexjs: string) {
@@ -12,6 +13,7 @@ export function register(options: PWDOptions, indexjs: string) {
           });
           
           async function loadpage() {
+            Notification.requestPermission();
             const res = await fetch('${indexjs}');
             console.log("loadpage: ", res);
           }
@@ -24,6 +26,9 @@ export function register(options: PWDOptions, indexjs: string) {
                 console.log('SW registration failed');
               }
             }
+
+            ${notification().code}
+    
           }
 
     `}
