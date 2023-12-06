@@ -22,6 +22,8 @@ export interface FileInfo {
     classes: ClassInfo[];
     removeDatas: string[];
     templatesUrl: string[];
+    styleCode?: string;
+    virtualFile?: string;
 }
 
 export class ProjectBuild extends Project {
@@ -37,7 +39,7 @@ export class ProjectBuild extends Project {
         this.path = this.getSourceFiles().find(e => e.getFilePath().includes("node_modules/typecompose-plugin"))?.getFilePath() || "";
         if (this.path != "")
             this.path = this.path.split("node_modules/typecompose-plugin/")[0] + "node_modules/typecompose-plugin/";
-        this.stylePath = this.path + "styles/style-base.scss";
+        this.stylePath = this.path + "public/style.scss";
     }
 
     public async analyze(path: string, code: string): Promise<string> {
@@ -69,10 +71,8 @@ export class ProjectBuild extends Project {
         for await (const data of fileInfo.removeDatas) {
             code = code.replace(data, "");
         }
-        console.log(fileInfo.removeDatas);
         fileInfo.removeDatas.length = 0;
-        await StyleBuild.build(this);
-        return code;
+        return await StyleBuild.build(fileInfo, code);
     }
 
     public getClassInofo(sourceFile: SourceFile, classDeclaration: ClassDeclaration): ClassInfo {

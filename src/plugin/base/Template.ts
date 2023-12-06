@@ -2,7 +2,7 @@ import { ClassInfo, FileInfo } from "./ProjectBuild";
 import { PropertyDeclaration } from 'ts-morph';
 import { StyleBuild } from "./Style";
 import { existsSync, readFileSync } from "node:fs";
-import { basename, dirname, join, normalize } from "node:path";
+import { basename, dirname, join, normalize, resolve } from "node:path";
 
 
 export interface RefComponentOptions {
@@ -49,7 +49,9 @@ export class TemplateBuild {
             html = html.replace(/<!--[\s\S]*?-->/g, '');
             html = StyleBuild.read(classInfo, html);
             classInfo.constructorDatas.push(`this.innerHTML = \`${html}\`;`);
+            templateUrl = resolve(templateUrl);
             fileInfo.templatesUrl.push(templateUrl);
+            console.log("template: ", templateUrl);
             return html;
         } catch (error) {
             return undefined;

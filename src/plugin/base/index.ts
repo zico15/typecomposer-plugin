@@ -2,13 +2,17 @@ import { Plugin, ViteDevServer } from 'vite';
 import { ProjectBuild } from './ProjectBuild';
 
 export default function typeComposePlugin(): Plugin {
-    let project: any;
+    let project: ProjectBuild;
 
     return {
         name: 'typescript-elements',
         enforce: 'pre',
+        resolveDynamicImport({ }, importee, importer) {
+            console.log('resolveDynamicImport:', importee, importer);
+            return importee;
+        },
         configureServer(server: ViteDevServer) {
-            console.log('config:');
+            console.log('config: ', server != undefined);
         },
         async buildStart() {
             console.log('buildStart:');
@@ -35,31 +39,42 @@ export default function typeComposePlugin(): Plugin {
             // StyleBuild.clear();
         },
         async load(id) {
-            if (id.includes("base/style-base.scss")) {
-                console.log('load:', id);
-                return project.styleCode;
+            if (id.includes(`virtual:stylebase`)) {
+                const fileInfo = Array.from(project.files.values()).find(e => e.virtualFile && id.includes(e.virtualFile));
+                if (fileInfo) {
+                    console.log('load:', id);
+                    // console.log('styleCode: ', project.styleCode);
+                    return fileInfo.styleCode;
+                }
             }
             return null;
         },
         async resolveId(id, importer) {
-            if (id.includes("base/style-base.scss")) {
+            const fileInfo = Array.from(project.files.values()).find(e => e.virtualFile && id.includes(e.virtualFile));
+            if (fileInfo) {
+
                 // const code = `
                 // body {
                 //     background-color: red !important;
                 // };`
                 // // Retorne o ID do módulo virtual
-                const virtualId = `virtual:${id}`;
-                console.log('resolveId:', id, virtualId);
+                // const virtualId = `virtual:${id}`;
+                // console.log('resolveId:', id, virtualId);
+
+                // zera o cache do módulo virtual
                 return {
-                    id: virtualId
-                    , external: true, contents: project.styleCode
+                    id: id,
+                    external: true,
+                    context: fileInfo.styleCode,
                 };
             }
         },
         async handleHotUpdate({ file, server }) {
             if (file.endsWith('.html')) {
+                console.log('handleHotUpdate:', file);
                 for await (const fileInfo of project.files.values()) {
                     if (fileInfo.templatesUrl.length > 0 && fileInfo.templatesUrl.includes(file)) {
+                        console.log('handleHotUpdate:templatesUrl ', fileInfo.path);
                         project.sendServerUpdate(fileInfo);
                     }
                 }
@@ -76,7 +91,19 @@ export default function typeComposePlugin(): Plugin {
         },
         async transform(code, path) {
             if (path.endsWith('.ts') && !path.includes("node_modules/typecompose-plugin")) {
+
                 code = await project.analyze(path, code);
+                if (path.includes("main.ts")) {
+                    // const stylePath = project.path + "public/style.scss";
+                    // console.log('transform:', stylePath, " isExists:", existsSync(stylePath));
+                    // const styleBase = `
+                    // body {
+                    //     background-color: red !important;
+                    // };
+                    // `
+                    // writeFileSync(stylePath, styleBase);
+                    // execFileSync()
+                }
             }
             return code;
         },
