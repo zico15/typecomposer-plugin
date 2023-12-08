@@ -2,6 +2,7 @@ import type { Plugin } from 'vite'
 import { PWDOptions, PwaBuildPlugin } from "./plugin/pwa";
 import typeComposePlugin from "./plugin/base";
 import { BuildPlugin } from './plugin/build';
+import { ProjectBuild } from './plugin/base/ProjectBuild';
 
 export interface TypeComposeOptions {
     pwa?: PWDOptions;
@@ -9,10 +10,11 @@ export interface TypeComposeOptions {
 
 export default function TypeCompose(options: TypeComposeOptions = {}): Plugin<any>[] {
     const { pwa } = options;
-    const plugins: Plugin<any>[] = [typeComposePlugin(), BuildPlugin()];
+    const project = new ProjectBuild();
+    const plugins: Plugin<any>[] = [typeComposePlugin(project), BuildPlugin(project)];
     if (pwa) {
         console.log('activate pwa build');
-        console.log('options: ', pwa);
+        // console.log('options: ', pwa);
         plugins.push(PwaBuildPlugin(pwa));
     }
     return plugins;

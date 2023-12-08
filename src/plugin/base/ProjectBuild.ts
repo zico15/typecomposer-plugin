@@ -46,7 +46,6 @@ export class ProjectBuild extends Project {
         const sourceFile = this.createSourceFile('dummy.ts', code, { overwrite: true });
         const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [] };
         const classes = sourceFile.getClasses();
-        console.log('Path:', sourceFile.getFilePath());
         fileInfo.sourceFile = sourceFile;
         fileInfo.removeDatas = [];
         fileInfo.path = path;
@@ -152,7 +151,6 @@ export class ProjectBuild extends Project {
                 }
             }
             const injectedLine = classInfo.constructorDatas.join("\n");
-            console.log("injectedLine: ", injectedLine);
             if (injectedLine != "")
                 constructorDeclaration.insertStatements(1, writer => {
                     writer.write(injectedLine);

@@ -2,7 +2,7 @@ import { ClassInfo, FileInfo } from "./ProjectBuild";
 import { PropertyDeclaration } from 'ts-morph';
 import { StyleBuild } from "./Style";
 import { existsSync, readFileSync } from "node:fs";
-import { basename, dirname, join, normalize, resolve } from "node:path";
+import { dirname, join, normalize, resolve } from "node:path";
 
 
 export interface RefComponentOptions {
@@ -27,7 +27,7 @@ export class TemplateBuild {
         if (templateUrl)
             templateUrl = templateUrl?.includes("src/") ? classInfo.registerOptions.templateUrl : "src/" + classInfo.registerOptions.templateUrl;
         if (templateUrl == undefined)
-            templateUrl = join(dirname(fileInfo.path), `${basename(fileInfo.path, '.ts')}.html`);
+            templateUrl = join(dirname(fileInfo.path), `${classInfo.className}.html`);
         if (templateUrl == undefined)
             return undefined;
         templateUrl = normalize(templateUrl);
@@ -51,7 +51,6 @@ export class TemplateBuild {
             classInfo.constructorDatas.push(`this.innerHTML = \`${html}\`;`);
             templateUrl = resolve(templateUrl);
             fileInfo.templatesUrl.push(templateUrl);
-            console.log("template: ", templateUrl);
             return html;
         } catch (error) {
             return undefined;
@@ -83,6 +82,7 @@ export class TemplateBuild {
     public static async anliyze(fileInfo: FileInfo) {
         for await (const classInfo of fileInfo.classes) {
             classInfo.registerOptions.templateUrl = this.getTemplateUrl(fileInfo, classInfo, classInfo.registerOptions?.templateUrl);
+            await StyleBuild.anliyze(fileInfo, classInfo);
             await this.readHtml(fileInfo, classInfo, classInfo.registerOptions?.templateUrl);
             await this.readRefComponent(fileInfo, classInfo, classInfo.registerOptions?.templateUrl);
             // if (classInfo.registerOptions.template)

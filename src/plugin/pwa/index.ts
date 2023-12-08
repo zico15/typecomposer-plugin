@@ -34,7 +34,6 @@ export function autoManifest(config: ResolvedConfig): PWAManifest | undefined {
 
 export function PwaBuildPlugin(options: PWDOptions): Plugin {
     let config: ResolvedConfig | undefined = undefined
-    let files: string[] = []
     let indexjs: string | undefined = undefined
     const transformIndexHtmlHandler = (html: string) => {
         // const { options, useImportRegister } = ctx
@@ -46,8 +45,8 @@ export function PwaBuildPlugin(options: PWDOptions): Plugin {
         //   options.injectRegister = useImportRegister ? null : 'script'
 
         // return injectServiceWorker(html, options, false)
-        console.log('transformIndexHtmlHandler')
-        console.log('html', html)
+        // console.log('transformIndexHtmlHandler')
+        // console.log('html', html)
     }
 
     return {
@@ -68,17 +67,12 @@ export function PwaBuildPlugin(options: PWDOptions): Plugin {
             config = _config
             if (options.manifest === 'auto')
                 options.manifest = autoManifest(config)
-            // Acesso ao caminho do diretório de saída (outDir)
-            const caminhoDoBuild: ResolvedConfig = config;
-
-            console.log('Caminho do diretório de build:', caminhoDoBuild);
         },
         generateBundle(n, bundle) {
-            files = Object.keys(bundle)
             for (const key in bundle) {
                 if (bundle[key].type == 'chunk')
                     indexjs = bundle[key].fileName
-                console.log('bundle', bundle[key].fileName, bundle[key].type)
+                // console.log('bundle', bundle[key].fileName, bundle[key].type)
             }
         },
         closeBundle: {
@@ -86,7 +80,6 @@ export function PwaBuildPlugin(options: PWDOptions): Plugin {
             order: 'post',
             async handler() {
                 if (options.manifest && config && indexjs) {
-                    console.log('generateBundle: \n', files);
                     writeFileSync(`${config.build.outDir}/manifest.webmanifest`, JSON.stringify(options.manifest))
                     await injectServiceWorker(config, options, indexjs);
                     console.log('closeBundle');

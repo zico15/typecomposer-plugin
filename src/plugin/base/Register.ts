@@ -4,6 +4,7 @@ export interface RegisterOptions {
     tag?: string;
     templateUrl?: string;
     extends?: string;
+    styleUrl?: string;
 }
 
 export class RegisterBuild {
