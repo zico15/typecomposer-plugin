@@ -36,9 +36,7 @@ export class RegisterBuild {
     public static injectTag(fileInfo: FileInfo, classInfo: ClassInfo) {
         const tag = classInfo.registerOptions.tag;
         const line = `customElements.define("${tag}", ${classInfo.classDeclaration.getName()}, ${classInfo.registerOptions?.extends ? '{ extends: "' + classInfo.registerOptions.extends + '" }' : "undefined"});`;
-        if (!fileInfo.sourceFile.getText().includes(line)) {
-            fileInfo.sourceFile.insertText(classInfo.classDeclaration.getEnd(), `\n${line}`);
-        }
+        fileInfo.endDatas.push(`\n${line}`);
     }
 
     public static async anliyze(fileInfo: FileInfo) {

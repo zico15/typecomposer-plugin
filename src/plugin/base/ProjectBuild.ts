@@ -20,10 +20,12 @@ export interface FileInfo {
     path: string;
     sourceFile: SourceFile;
     classes: ClassInfo[];
-    removeDatas: string[];
     templatesUrl: string[];
     styleCode?: string;
     virtualFile?: string;
+    removeDatas: string[];
+    startDatas: string[];
+    endDatas: string[];
 }
 
 export class ProjectBuild extends Project {
@@ -44,10 +46,12 @@ export class ProjectBuild extends Project {
 
     public async analyze(path: string, code: string): Promise<string> {
         const sourceFile = this.createSourceFile('dummy.ts', code, { overwrite: true });
-        const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [] };
+        const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [], startDatas: [], endDatas: [] };
         const classes = sourceFile.getClasses();
         fileInfo.sourceFile = sourceFile;
         fileInfo.removeDatas = [];
+        fileInfo.startDatas = [];
+        fileInfo.endDatas = [];
         fileInfo.path = path;
         fileInfo.templatesUrl = [];
         fileInfo.classes = classes.map((classDeclaration: ClassDeclaration) => {
@@ -69,6 +73,12 @@ export class ProjectBuild extends Project {
         let code = fileInfo.sourceFile.getFullText();
         for await (const data of fileInfo.removeDatas) {
             code = code.replace(data, "");
+        }
+        for await (const data of fileInfo.startDatas) {
+            code = data + code;
+        }
+        for await (const data of fileInfo.endDatas) {
+            code = code + data;
         }
         fileInfo.removeDatas.length = 0;
         return await StyleBuild.build(fileInfo, code);
