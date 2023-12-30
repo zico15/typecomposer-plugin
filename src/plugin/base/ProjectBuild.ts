@@ -190,7 +190,7 @@ export class ProjectBuild extends Project {
             statements: [],
             parameters: []
         });
-        disconnectedCallback?.insertStatements(0, 'this.unmount?.(); this._styleRef?.disconnectedCallback();this.removeEvents?.();');
+        disconnectedCallback?.insertStatements(0, 'this.unmount?.(); this?.destructor(); this._styleRef?.disconnectedCallback();this.removeEvents?.();');
     }
 
     public sendServerUpdate(fileInfo: FileInfo) {

@@ -85,7 +85,15 @@ export class TemplateBuild {
             await StyleBuild.anliyze(fileInfo, classInfo);
             await this.readHtml(fileInfo, classInfo, classInfo.registerOptions?.templateUrl);
             await this.readRefComponent(fileInfo, classInfo, classInfo.registerOptions?.templateUrl);
-            // if (classInfo.registerOptions.template)
+            if (classInfo.className == "CardDescription") {
+                // console.log("classInfo: ", classInfo);
+                // Variable in class
+                console.log("Variable in class");
+                classInfo.classDeclaration.getProperties().forEach((variavel) => {
+                    console.log("Nome da variável:", variavel.getName());
+                    console.log("Tipo da variável:", variavel.getType().getText());
+                });
+            }
         }
     }
 
