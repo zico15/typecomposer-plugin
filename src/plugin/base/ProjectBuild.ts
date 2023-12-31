@@ -14,6 +14,10 @@ export interface ClassInfo {
     registerOptions: RegisterOptions;
     constructorDatas: string[];
     styles: string[];
+    paranet: {
+        path: string;
+        className: string;
+    } | undefined;
 }
 
 export interface FileInfo {
@@ -88,16 +92,18 @@ export class ProjectBuild extends Project {
         const className = classDeclaration.getName();
         const extendsClause = classDeclaration.getExtends()?.getText();
         const decorators = classDeclaration.getDecorators()?.map((decorator: Decorator) => decorator.getText()) || [];
+        const { isComponent, paranet } = this.checkIsComponent(classDeclaration);
         return {
             className,
             extends: extendsClause,
             decorators: decorators,
             imports: JSON.stringify(this.getImportInfo(sourceFile)),
-            isComponent: this.checkIsComponent(classDeclaration),
+            isComponent: isComponent,
             classDeclaration: classDeclaration,
             registerOptions: {},
             constructorDatas: [],
-            styles: []
+            styles: [],
+            paranet: paranet
         };
     }
 
@@ -110,21 +116,31 @@ export class ProjectBuild extends Project {
         });
     }
 
-    private checkImplementsComponent(sourceFile: SourceFile, classDeclaration: ClassDeclaration): boolean {
-
+    private checkImplementsComponent(sourceFile: SourceFile, classDeclaration: ClassDeclaration): {
+        isComponent: boolean, paranet: {
+            path: string;
+            className: string;
+        } | undefined
+    } {
         if (sourceFile && classDeclaration && classDeclaration.getImplements().map(e => e.getText()).includes('IComponent')) {
             const i = sourceFile.getFilePath();
             if (i.includes("node_modules/typecompose"))
-                return true;
+                return { isComponent: true, paranet: { path: i.includes(".d.ts") ? i.replace(".d.ts", ".js") : i, className: classDeclaration.getName() || "" } };
         }
-        return false;
+        return { isComponent: false, paranet: undefined };
     }
 
-    public checkIsComponent(classDeclaration: ClassDeclaration): boolean {
+    public checkIsComponent(classDeclaration: ClassDeclaration): {
+        isComponent: boolean, paranet: {
+            path: string;
+            className: string;
+        } | undefined
+    } {
         if (classDeclaration == undefined)
-            return false;
-        if (this.checkImplementsComponent(classDeclaration.getSourceFile(), classDeclaration))
-            return true;
+            return { isComponent: false, paranet: undefined };
+        const check = this.checkImplementsComponent(classDeclaration.getSourceFile(), classDeclaration)
+        if (check.isComponent)
+            return check;
         if (classDeclaration) {
             const extendsClause = classDeclaration.getHeritageClauses()[0]; // Considerando apenas a primeira cláusula "extends"
             const extendsTypeNode = extendsClause ? extendsClause.getTypeNodes()[0] : undefined;
@@ -136,7 +152,7 @@ export class ProjectBuild extends Project {
                     return this.checkIsComponent(extendedClassDeclaration);
             }
         }
-        return false;
+        return { isComponent: false, paranet: undefined };
     }
 
     getImportInfo(sourceFile: SourceFile) {
