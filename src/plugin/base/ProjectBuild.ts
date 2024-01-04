@@ -196,7 +196,7 @@ export class ProjectBuild extends Project {
             statements: [],
             parameters: []
         });
-        connectedCallback?.insertStatements(0, 'this.oninit();');
+        connectedCallback?.insertStatements(0, 'this.onInit();');
 
         const disconnectedCallback = classDeclaration.getMethod("disconnectedCallback") || classDeclaration.addMethod({
             name: "disconnectedCallback",
