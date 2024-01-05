@@ -41,8 +41,9 @@ export class ProjectBuild extends Project {
 
     constructor() {
         super();
-        this.addSourceFilesAtPaths('**/*.ts');
+        this.addSourceFilesAtPaths('node_modules/typecompose-plugin/**/*.ts');
         this.path = this.getSourceFiles().find(e => e.getFilePath().includes("node_modules/typecompose-plugin"))?.getFilePath() || "";
+
         if (this.path != "")
             this.path = this.path.split("node_modules/typecompose-plugin/")[0] + "node_modules/typecompose-plugin/";
         this.stylePath = this.path + "public/style.scss";
