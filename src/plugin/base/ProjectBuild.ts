@@ -177,10 +177,13 @@ export class ProjectBuild extends Project {
                 }
             }
             const injectedLine = classInfo.constructorDatas.join("\n");
-            if (injectedLine != "")
-                constructorDeclaration.insertStatements(1, writer => {
-                    writer.write(injectedLine);
-                });
+            constructorDeclaration.insertStatements(1, writer => {
+                writer.write(injectedLine);
+            });
+            // adiconar no final do construtor
+            constructorDeclaration.insertStatements(constructorDeclaration.getStatements().length, writer => {
+                writer.write("this.onInit();");
+            });
         }
         catch (__) {
             console.log("Error: ", __);
@@ -188,15 +191,15 @@ export class ProjectBuild extends Project {
     }
 
     private injectFunctions(sourceFile: SourceFile, classDeclaration: ClassDeclaration) {
-        const connectedCallback = classDeclaration.getMethod("connectedCallback") || classDeclaration.addMethod({
-            name: "connectedCallback",
-            isAsync: false,
-            isStatic: false,
-            returnType: "void",
-            statements: [],
-            parameters: []
-        });
-        connectedCallback?.insertStatements(0, 'this.onInit();');
+        // const connectedCallback = classDeclaration.getMethod("connectedCallback") || classDeclaration.addMethod({
+        //     name: "connectedCallback",
+        //     isAsync: false,
+        //     isStatic: false,
+        //     returnType: "void",
+        //     statements: [],
+        //     parameters: []
+        // });
+        // connectedCallback?.insertStatements(0, 'this.onInit();');
 
         const disconnectedCallback = classDeclaration.getMethod("disconnectedCallback") || classDeclaration.addMethod({
             name: "disconnectedCallback",
