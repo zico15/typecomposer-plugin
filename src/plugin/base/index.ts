@@ -82,7 +82,6 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
         async transform(code, id) {
             if ((id.endsWith('.ts') || id.endsWith('.js') || id.endsWith('.tsx') || id.endsWith('.jsx')
             ) && !id.includes("node_modules/typecompose-plugin")) {
-
                 code = await project.analyze(id, code);
                 if (id.includes("main.ts")) {
                     // const stylePath = project.path + "public/style.scss";
