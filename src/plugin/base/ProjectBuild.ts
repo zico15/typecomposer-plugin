@@ -1,4 +1,4 @@
-import { ClassDeclaration, Decorator, Project, SourceFile } from 'ts-morph';
+import { ClassDeclaration, Decorator, Project, SourceFile, SyntaxKind } from 'ts-morph';
 import { RegisterBuild, RegisterOptions } from './Register';
 import { TemplateBuild } from './Template';
 import { StyleBuild } from './Style';
@@ -64,6 +64,30 @@ export class ProjectBuild extends Project {
         await RegisterBuild.anliyze(fileInfo);
         await TemplateBuild.anliyze(fileInfo);
         this.files.set(path, fileInfo);
+        // if (path.includes("index.ts")) {
+        //     // console.log('Analyze:', fileInfo.);
+        //     // Encontrar todas as chamadas para a função estática Router.create
+        //     const routerCreateCalls = sourceFile
+        //         .getDescendantsOfKind(SyntaxKind.CallExpression)
+        //         .filter((call) => {
+        //             // Verificar se é uma chamada para Router.create
+        //             const expression: any = call.getExpression();
+        //             console.log('expression: ', expression);
+        //             return (
+        //                 expression &&
+        //                 expression.getKind() === SyntaxKind.PropertyAccessExpression &&
+        //                 expression.getName() === "create" &&
+        //                 expression.getExpression()?.getText() === "Router"
+        //             );
+        //         });
+
+        //     // Exibir informações sobre a origem de cada chamada
+        //     routerCreateCalls.forEach((call) => {
+        //         const sourceFile: SourceFile | undefined = call.getSourceFile();
+        //         const start = call.getStartLineNumber();
+        //         console.log(`Chamada para Router.create em ${sourceFile?.getFilePath()}:${start}`);
+        //     });
+        // }
         // console.log('Analyze:', fileInfo);
         return await this.build(fileInfo);
     }
