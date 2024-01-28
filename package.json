@@ -1,7 +1,7 @@
 {
   "name": "typecompose-plugin",
   "type": "module",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "packageManager": "pnpm@8.11.0",
   "description": "TypeCompose plugin for Vite",
   "author": "zico15 <zequielzico@gmail.com>",
@@ -52,12 +52,15 @@
     "pub": "npm run build && npm publish --access public --tag latest"
   },
   "peerDependencies": {
-    "vite": "^3.1.0 || ^4.0.0 || ^5.0.0",
-    "ts-morph": "^20.0.0"
+    "ts-morph": "^21.0.1",
+    "vite": "^3.1.0 || ^4.0.0 || ^5.0.0"
   },
   "devDependencies": {
-    "ts-morph": "^20.0.0",
-    "typescript": "^5.3.2",
+    "ts-morph": "^21.0.1",
+    "typescript": "^5.3.3",
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3"
   }
 }

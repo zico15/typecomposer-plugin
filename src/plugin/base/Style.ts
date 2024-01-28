@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
-import { ClassInfo, FileInfo, ProjectBuild } from './ProjectBuild';
 import { dirname, join, normalize } from 'node:path';
+import { ClassInfo, FileInfo } from '../transpilator/Interfaces';
+import { ProjectBuild } from '../transpilator/ProjectBuild';
 
 export class StyleBuild {
 
@@ -27,7 +28,7 @@ export class StyleBuild {
         return html;
     }
 
-    private static getStyleUrl(fileInfo: FileInfo, classInfo: ClassInfo, styleUrl?: string): string | undefined {
+    private static async getStyleUrl(fileInfo: FileInfo, classInfo: ClassInfo, styleUrl?: string): Promise<string | undefined> {
         if (styleUrl)
             styleUrl = styleUrl?.includes("src/") ? classInfo.registerOptions.styleUrl : "src/" + classInfo.registerOptions.styleUrl;
         if (styleUrl == undefined)
@@ -35,20 +36,14 @@ export class StyleBuild {
         if (styleUrl == undefined)
             return undefined;
         styleUrl = normalize(styleUrl);
-        console.log("normalize: ", normalize(styleUrl), " => ", existsSync(styleUrl));
         if (styleUrl && existsSync(styleUrl))
             return styleUrl;
         styleUrl = join(dirname(fileInfo.path), `${classInfo.className}.css`);
         styleUrl = normalize(styleUrl);
-        if (styleUrl == undefined && !existsSync(styleUrl))
-            return undefined;
-        return styleUrl;
+        return existsSync(styleUrl) ? styleUrl : undefined;
     }
     public static async anliyze(fileInfo: FileInfo, classInfo: ClassInfo) {
-        classInfo.registerOptions.styleUrl = this.getStyleUrl(fileInfo, classInfo, classInfo.registerOptions?.styleUrl);
-        if (classInfo.registerOptions?.styleUrl) {
-            console.log("styleUrl: ", classInfo.registerOptions.styleUrl);
-        }
+        classInfo.registerOptions.styleUrl = await this.getStyleUrl(fileInfo, classInfo, classInfo.registerOptions?.styleUrl);
     }
 
     public static getStyleCode(fileInfo: FileInfo): string {
