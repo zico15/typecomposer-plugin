@@ -15,10 +15,11 @@ export class TemplateBuild {
 
     private static bases: string[] = ["div", "p", "a", "img", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "span", "strong", "em", "br", "hr", "table", "tr", "th", "td", "form", "input", "button", "textarea", "label", "select", "iframe", "audio", "video", "canvas", "svg", "footer", "header", "nav", "main", "section", "article", "details", "summary"];
 
-    public static read(html: string): string {
+    private static replace_html_tags(html: string): string {
         for (let i = 0; i < TemplateBuild.bases.length; i++) {
             const base = TemplateBuild.bases[i];
-            html = html.replaceAll(`<${base}`, `<${base} is="base-${base}-element" `);
+            html = html.replaceAll(`<${base} `, `<${base} is="base-${base}-element" `);
+            html = html.replaceAll(`<${base}>`, `<${base} is="base-${base}-element" `);
         }
         return html.replace(/<!--[\s\S]*?-->/g, '');
     }
@@ -42,17 +43,14 @@ export class TemplateBuild {
             return;
         try {
             let html = readFileSync(templateUrl, 'utf-8');
-            for (let i = 0; i < TemplateBuild.bases.length; i++) {
-                const base = TemplateBuild.bases[i];
-                html = html.replaceAll(`<${base}`, `<${base} is="base-${base}-element" `);
-            }
-            html = html.replace(/<!--[\s\S]*?-->/g, '');
+            html = TemplateBuild.replace_html_tags(html);
             html = StyleBuild.read(classInfo, html).trim();
             classInfo.constructorDatas.push(`this.innerHTML = \`${html}\`;`);
             templateUrl = resolve(templateUrl);
             fileInfo.templatesUrl.push(templateUrl);
             return html.trim();
         } catch (error) {
+            classInfo.registerOptions.templateUrl = undefined;
             return undefined;
         }
     }
@@ -80,6 +78,8 @@ export class TemplateBuild {
                 }
             });
         }
+        if (templateUrl == undefined)
+            return;
         console.log("variaveis: ", variables.map(prop => prop.getText()));
         for (let i = 0; i < variables.length; i++) {
             const variable = variables[i];

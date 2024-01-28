@@ -1,9 +1,7 @@
 import { Plugin, ViteDevServer } from 'vite';
 import { StyleBuild } from './Style';
 import { ProjectBuild } from '../transpilator/ProjectBuild';
-import { TemplateBuild } from './Template';
-
-
+import { ChangeEvent } from '../transpilator/Interfaces';
 /**
  * TypeCompose plugin function for project analysis and transformation during pre-build.
  * This plugin is responsible for analyzing the project and applying transformations
@@ -17,8 +15,8 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
     return {
         name: 'typescript-elements',
         enforce: 'pre',
-        watchChange(id, change) {
-            // console.log('watchChange:', id, " => ", change);
+        watchChange(id: string, change: { event: ChangeEvent }) {
+            project.watchChange(id, change);
         },
         resolveDynamicImport({ }, importee, importer) {
             return importee;

@@ -2,7 +2,7 @@ import { ClassDeclaration, Decorator, Project, SourceFile } from 'ts-morph';
 import { utimesSync } from 'node:fs';
 import { RegisterBuild } from '../base/Register';
 import { StyleBuild } from '../base/Style';
-import { FileInfo, ClassInfo, printFileInfo } from './Interfaces';
+import { FileInfo, ClassInfo, printFileInfo, ChangeEvent } from './Interfaces';
 import path from 'node:path';
 import { TemplateBuild } from '../base/Template';
 
@@ -228,7 +228,7 @@ export class ProjectBuild extends Project {
         return code;
     }
 
-    public async isFileTemplate(filePath: string): Promise<boolean> {
+    public async isFileTemplate(filePath: string): Promise<FileInfo[]> {
         const fileInfos = [];
         const fileName = path.basename(filePath).replace(path.extname(filePath), "");
         const fileDirName = path.dirname(filePath);
@@ -244,6 +244,17 @@ export class ProjectBuild extends Project {
             }
         }
         console.log("isFileTemplate: ", fileInfos.length);
-        return false;
+        return fileInfos;
+    }
+
+    async watchChange(id: string, change: { event: ChangeEvent }) {
+        if (id.endsWith('.html')) {
+            if (change.event != "update") {
+                const fileInfos = await this.isFileTemplate(id);
+                for (const fileInfo of fileInfos) {
+                    this.sendServerUpdate(fileInfo);
+                }
+            }
+        }
     }
 }

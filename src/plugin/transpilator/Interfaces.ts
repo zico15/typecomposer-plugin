@@ -1,6 +1,8 @@
 import { ClassDeclaration, SourceFile } from "ts-morph";
 import { RegisterOptions } from "../base/Register";
 
+export type ChangeEvent = 'create' | 'update' | 'delete';
+
 export interface ClassInfo {
     className: string | undefined;
     extends: string | undefined;
@@ -43,6 +45,7 @@ export function printClassInfo(classInfo: ClassInfo) {
     console.log('refComponents: ', classInfo.refComponents);
     console.log('registerOptions: ', classInfo.registerOptions);
 }
+
 
 export function printFileInfo(fileInfo: FileInfo) {
     if (fileInfo.classes.length == 0)
