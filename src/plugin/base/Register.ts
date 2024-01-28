@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { ClassInfo, FileInfo } from "./ProjectBuild";
+import { FileInfo, ClassInfo } from "../transpilator/Interfaces";
+
 
 export interface RegisterOptions {
     tag?: string;
@@ -22,13 +23,14 @@ export class RegisterBuild {
     private static async readRegister(fileInfo: FileInfo, classInfo: ClassInfo) {
         const decorators = classInfo.classDeclaration.getDecorators();
         const register = decorators.find(e => e.getName() == "Register");
-        const registerArgs = register?.getArguments().map(arg => arg.getText().replace(/,(?=\s*})/, '')).join(", ").replace(/(\w+):/g, '"$1":');
+        const registerArgs = register?.getArguments().map(arg => arg.getText().replace(/,(?=\s*})/, '')).join(", ").replace(/(\w+):/g, '"$1":').replace(/'/g, '"');
 
         if (register)
             fileInfo.removeDatas.push(register.getText());
         try {
             classInfo.registerOptions = JSON.parse(registerArgs || "{}");
         } catch (error) {
+            console.log("error: ", error)
         }
         if (classInfo.registerOptions?.extends == undefined)
             await this.readExtends(classInfo);
@@ -59,16 +61,16 @@ export class RegisterBuild {
         }
     }
 
-    public static injectTag(fileInfo: FileInfo, classInfo: ClassInfo) {
+    public static async injectTag(classInfo: ClassInfo) {
         const tag = classInfo.registerOptions.tag;
         const line = `customElements.define("${tag}", ${classInfo.classDeclaration.getName()}, ${classInfo.registerOptions?.extends ? '{ extends: "' + classInfo.registerOptions.extends + '" }' : "undefined"});`;
-        console.log(`${classInfo.className}: `, line)
-        fileInfo.endDatas.push(`\n${line}`);
+        classInfo.afterClassDatas.push(line);
     }
 
     public static async anliyze(fileInfo: FileInfo) {
         for await (const classInfo of fileInfo.classes) {
             await this.readRegister(fileInfo, classInfo);
+            await this.injectTag(classInfo);
         }
     }
 }

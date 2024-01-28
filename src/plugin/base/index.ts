@@ -1,17 +1,27 @@
 import { Plugin, ViteDevServer } from 'vite';
-import { ProjectBuild } from './ProjectBuild';
 import { StyleBuild } from './Style';
-
+import { ProjectBuild } from '../transpilator/ProjectBuild';
+import { ChangeEvent } from '../transpilator/Interfaces';
+/**
+ * TypeCompose plugin function for project analysis and transformation during pre-build.
+ * This plugin is responsible for analyzing the project and applying transformations
+ * necessary to ensure that the code is compatible with browsers.
+ *
+ * @param project - Object that represents the project to be built.
+ * @returns A plugin that analyzes and transforms the code during pre-build.
+ */
 export default function typeComposePlugin(project: ProjectBuild): Plugin {
 
     return {
         name: 'typescript-elements',
         enforce: 'pre',
+        watchChange(id: string, change: { event: ChangeEvent }) {
+            project.watchChange(id, change);
+        },
         resolveDynamicImport({ }, importee, importer) {
             return importee;
         },
         configureServer(server: ViteDevServer) {
-            // console.log('config: ', server != undefined);
         },
         async buildStart() {
             console.log('buildStart:');
@@ -60,12 +70,23 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
             }
         },
         async handleHotUpdate({ file, server }) {
+            // console.log('handleHotUpdate:', file);
             if (file.endsWith('.html')) {
+                project.isFileTemplate(file);
                 // console.log('handleHotUpdate:', file);
                 for await (const fileInfo of project.files.values()) {
                     if (fileInfo.templatesUrl.length > 0 && fileInfo.templatesUrl.includes(file)) {
                         // console.log('handleHotUpdate:templatesUrl ', fileInfo.path);
+                        console.log('handleHotUpdate:templatesUrl ', fileInfo.path);
                         project.sendServerUpdate(fileInfo);
+                        server.ws.send({
+                            type: 'custom',
+                            event: 'file-changed',
+                            data: {
+                                path: fileInfo.path,
+                                change: 'reload'
+                            }
+                        });
                     }
                 }
             }
@@ -80,30 +101,9 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
 
         },
         async transform(code, id) {
-            if ((id.endsWith('.ts') || id.endsWith('.js') || id.endsWith('.tsx') || id.endsWith('.jsx')
-            ) && !id.includes("node_modules/typecompose-plugin")) {
-                code = await project.analyze(id, code);
-                if (id.includes("main.ts")) {
-                    // const stylePath = project.path + "public/style.scss";
-                    // console.log('transform:', stylePath, " isExists:", existsSync(stylePath));
-                    // const styleBase = `
-                    // body {
-                    //     background-color: red !important;
-                    // };
-                    // `
-                    // writeFileSync(stylePath, styleBase);
-                    // execFileSync()
-                }
-            }
-            else if (id.includes(StyleBuild.identifier)) {
-                // console.log('transform:', id);
-                const fileInfo = Array.from(project.files.values()).find(e => e.virtualFile && id.includes(e.virtualFile));
-                if (fileInfo) {
-                    // console.log('styleCode: ', project.styleCode);
-                    return fileInfo.styleCode;
-                }
-            }
-            return code;
+            // console.log('transform:', id);ß
+            if (!id.includes("node_modules"))
+                return await project.transform(code, id);
         },
     };
 }

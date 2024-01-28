@@ -1,36 +1,12 @@
-import { ClassDeclaration, Decorator, Project, SourceFile, SyntaxKind } from 'ts-morph';
-import { RegisterBuild, RegisterOptions } from './Register';
-import { TemplateBuild } from './Template';
-import { StyleBuild } from './Style';
+import { ClassDeclaration, Decorator, Project, SourceFile } from 'ts-morph';
 import { utimesSync } from 'node:fs';
+import { RegisterBuild } from '../base/Register';
+import { StyleBuild } from '../base/Style';
+import { FileInfo, ClassInfo, printFileInfo, ChangeEvent } from './Interfaces';
+import path from 'node:path';
+import { TemplateBuild } from '../base/Template';
 
-export interface ClassInfo {
-    className: string | undefined;
-    extends: string | undefined;
-    decorators: string[];
-    imports: string;
-    isComponent: boolean;
-    classDeclaration: ClassDeclaration;
-    registerOptions: RegisterOptions;
-    constructorDatas: string[];
-    styles: string[];
-    paranet: {
-        path: string;
-        className: string;
-    } | undefined;
-}
 
-export interface FileInfo {
-    path: string;
-    sourceFile: SourceFile;
-    classes: ClassInfo[];
-    templatesUrl: string[];
-    styleCode?: string;
-    virtualFile?: string;
-    removeDatas: string[];
-    startDatas: string[];
-    endDatas: string[];
-}
 
 export class ProjectBuild extends Project {
 
@@ -49,7 +25,7 @@ export class ProjectBuild extends Project {
     }
 
     public async analyze(path: string, code: string): Promise<string> {
-        const sourceFile = this.createSourceFile('dummy.ts', code, { overwrite: true });
+        const sourceFile = this.createSourceFile('dummy.ts', code, { overwrite: true, scriptKind: 3 });
         const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [], startDatas: [], endDatas: [] };
         const classes = sourceFile.getClasses();
         fileInfo.sourceFile = sourceFile;
@@ -64,31 +40,7 @@ export class ProjectBuild extends Project {
         await RegisterBuild.anliyze(fileInfo);
         await TemplateBuild.anliyze(fileInfo);
         this.files.set(path, fileInfo);
-        // if (path.includes("index.ts")) {
-        //     // console.log('Analyze:', fileInfo.);
-        //     // Encontrar todas as chamadas para a função estática Router.create
-        //     const routerCreateCalls = sourceFile
-        //         .getDescendantsOfKind(SyntaxKind.CallExpression)
-        //         .filter((call) => {
-        //             // Verificar se é uma chamada para Router.create
-        //             const expression: any = call.getExpression();
-        //             console.log('expression: ', expression);
-        //             return (
-        //                 expression &&
-        //                 expression.getKind() === SyntaxKind.PropertyAccessExpression &&
-        //                 expression.getName() === "create" &&
-        //                 expression.getExpression()?.getText() === "Router"
-        //             );
-        //         });
-
-        //     // Exibir informações sobre a origem de cada chamada
-        //     routerCreateCalls.forEach((call) => {
-        //         const sourceFile: SourceFile | undefined = call.getSourceFile();
-        //         const start = call.getStartLineNumber();
-        //         console.log(`Chamada para Router.create em ${sourceFile?.getFilePath()}:${start}`);
-        //     });
-        // }
-        // console.log('Analyze:', fileInfo);
+        printFileInfo(fileInfo);
         return await this.build(fileInfo);
     }
 
@@ -96,9 +48,13 @@ export class ProjectBuild extends Project {
         for await (const classInfo of fileInfo.classes) {
             this.insertConstructorDatas(classInfo);
             this.injectFunctions(fileInfo.sourceFile, classInfo.classDeclaration);
-            RegisterBuild.injectTag(fileInfo, classInfo);
         }
         let code = fileInfo.sourceFile.getFullText();
+        for await (const classInfo of fileInfo.classes) {
+            const afterClassDatas = classInfo.afterClassDatas.join("\n");
+            code = code.replace(classInfo.classDeclaration.getText(),
+                classInfo.classDeclaration.getText() + "\n" + afterClassDatas);
+        }
         for await (const data of fileInfo.removeDatas) {
             code = code.replace(data, "");
         }
@@ -127,7 +83,9 @@ export class ProjectBuild extends Project {
             registerOptions: {},
             constructorDatas: [],
             styles: [],
-            paranet: paranet
+            afterClassDatas: [],
+            refComponents: [],
+            paranet: paranet,
         };
     }
 
@@ -239,5 +197,64 @@ export class ProjectBuild extends Project {
     public sendServerUpdate(fileInfo: FileInfo) {
         const now = new Date();
         utimesSync(fileInfo.path, now, now);
+    }
+
+    public async transform(code: string, id: string): Promise<string> {
+        if (id.endsWith('.ts') || id.endsWith('.js') || id.endsWith('.tsx') || id.endsWith('.jsx')) {
+
+            // // code = 
+            // if (id.includes("main.ts")) {
+            //     // const stylePath = project.path + "public/style.scss";
+            //     // console.log('transform:', stylePath, " isExists:", existsSync(stylePath));
+            //     // const styleBase = `
+            //     // body {
+            //     //     background-color: red !important;
+            //     // };
+            //     // `
+            //     // writeFileSync(stylePath, styleBase);
+            //     // execFileSync()
+            // }
+            // console.log('transform:', id);
+            return await this.analyze(id, code);
+        }
+        else if (id.includes(StyleBuild.identifier)) {
+            // console.log('transform:', id);
+            // const fileInfo = Array.from(project.files.values()).find(e => e.virtualFile && id.includes(e.virtualFile));
+            // if (fileInfo) {
+            //     // console.log('styleCode: ', project.styleCode);
+            //     return fileInfo.styleCode;
+            // }
+        }
+        return code;
+    }
+
+    public async isFileTemplate(filePath: string): Promise<FileInfo[]> {
+        const fileInfos = [];
+        const fileName = path.basename(filePath).replace(path.extname(filePath), "");
+        const fileDirName = path.dirname(filePath);
+        for (const fileInfo of this.files.values()) {
+
+            if (path.dirname(fileInfo.path) == fileDirName) {
+                for (const classInfo of fileInfo.classes) {
+                    if (classInfo.className == fileName || classInfo.registerOptions.templateUrl == filePath) {
+                        fileInfos.push(fileInfo);
+                        break;
+                    }
+                }
+            }
+        }
+        console.log("isFileTemplate: ", fileInfos.length);
+        return fileInfos;
+    }
+
+    async watchChange(id: string, change: { event: ChangeEvent }) {
+        if (id.endsWith('.html')) {
+            if (change.event != "update") {
+                const fileInfos = await this.isFileTemplate(id);
+                for (const fileInfo of fileInfos) {
+                    this.sendServerUpdate(fileInfo);
+                }
+            }
+        }
     }
 }
