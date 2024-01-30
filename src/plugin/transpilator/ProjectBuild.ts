@@ -1,4 +1,4 @@
-import { ClassDeclaration, Decorator, Project, SourceFile } from 'ts-morph';
+import {ClassDeclaration, Decorator, Project, SourceFile, SyntaxKind} from 'ts-morph';
 import { utimesSync } from 'node:fs';
 import { RegisterBuild } from '../base/Register';
 import { StyleBuild } from '../base/Style';
@@ -14,6 +14,7 @@ export class ProjectBuild extends Project {
     public path: string;
     public stylePath: string;
     public styleCode: string = "";
+    public pathClassMain: string = "";
 
     constructor() {
         super();
@@ -24,9 +25,40 @@ export class ProjectBuild extends Project {
         this.stylePath = this.path + "public/style.scss";
     }
 
+    public checkRouterImport(fileInfo: FileInfo): boolean {
+        if (fileInfo) {
+            const found = fileInfo.imports.some((e) => {
+                return e.moduleSpecifier == "typecompose" && e.namedImports.includes("Router");
+            });
+            if (found) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public checkRouterCreate(fileInfo: FileInfo): boolean {
+        if (fileInfo) {
+            const found = fileInfo.sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression).some((e) => {
+                const expression = e.getExpression();
+                if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
+                    const propertyAccessExpression = expression.asKind(SyntaxKind.PropertyAccessExpression);
+                    return propertyAccessExpression.getName() === "create" &&
+                      propertyAccessExpression.getExpression().getText() === "Router";
+                }
+                return false;
+            });
+
+            if (found) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public async analyze(path: string, code: string): Promise<string> {
         const sourceFile = this.createSourceFile('dummy.ts', code, { overwrite: true, scriptKind: 3 });
-        const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [], startDatas: [], endDatas: [] };
+        const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [], startDatas: [], endDatas: [], imports: [] };
         const classes = sourceFile.getClasses();
         fileInfo.sourceFile = sourceFile;
         fileInfo.removeDatas = [];
@@ -34,13 +66,20 @@ export class ProjectBuild extends Project {
         fileInfo.endDatas = [];
         fileInfo.path = path;
         fileInfo.templatesUrl = [];
+        fileInfo.imports = this.getImportInfo(sourceFile);
         fileInfo.classes = classes.map((classDeclaration: ClassDeclaration) => {
-            return this.getClassInofo(sourceFile, classDeclaration);
+            return this.getClassInofo(sourceFile, classDeclaration, fileInfo);
         }).filter((classInfo: ClassInfo) => classInfo.isComponent);
         await RegisterBuild.anliyze(fileInfo);
         await TemplateBuild.anliyze(fileInfo);
         this.files.set(path, fileInfo);
-        printFileInfo(fileInfo);
+        if (this.checkRouterImport(fileInfo)) {
+            if (this.checkRouterCreate(fileInfo)) {
+                this.pathClassMain = fileInfo.path;
+                console.log("Found Router.create() call at: ", this.pathClassMain);
+            }
+        }
+        // printFileInfo(fileInfo);
         return await this.build(fileInfo);
     }
 
@@ -68,7 +107,7 @@ export class ProjectBuild extends Project {
         return await StyleBuild.build(fileInfo, code);
     }
 
-    public getClassInofo(sourceFile: SourceFile, classDeclaration: ClassDeclaration): ClassInfo {
+    public getClassInofo(sourceFile: SourceFile, classDeclaration: ClassDeclaration, fileInfo: FileInfo): ClassInfo {
         const className = classDeclaration.getName();
         const extendsClause = classDeclaration.getExtends()?.getText();
         const decorators = classDeclaration.getDecorators()?.map((decorator: Decorator) => decorator.getText()) || [];
@@ -77,7 +116,7 @@ export class ProjectBuild extends Project {
             className,
             extends: extendsClause,
             decorators: decorators,
-            imports: JSON.stringify(this.getImportInfo(sourceFile)),
+            imports: JSON.stringify(fileInfo.imports),
             isComponent: isComponent,
             classDeclaration: classDeclaration,
             registerOptions: {},
