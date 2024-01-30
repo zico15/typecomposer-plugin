@@ -6,8 +6,6 @@ import { FileInfo, ClassInfo, printFileInfo, ChangeEvent } from './Interfaces';
 import path from 'node:path';
 import { TemplateBuild } from '../base/Template';
 
-
-
 export class ProjectBuild extends Project {
 
     public files: Map<string, FileInfo> = new Map<string, FileInfo>();
@@ -71,6 +69,15 @@ export class ProjectBuild extends Project {
     public getClassInofo(sourceFile: SourceFile, classDeclaration: ClassDeclaration): ClassInfo {
         const className = classDeclaration.getName();
         const extendsClause = classDeclaration.getExtends()?.getText();
+        const constructors = classDeclaration.getConstructors() || [];
+        if (constructors.length > 0) {
+            const p = constructors[0].getParameters().map((param) => { return { name: param.getName(), type: param.getType().getText() } });
+            console.log("constructor: ", p);
+        }
+        else
+            console.log("constructors: ", constructors.length);
+
+
         const decorators = classDeclaration.getDecorators()?.map((decorator: Decorator) => decorator.getText()) || [];
         const { isComponent, paranet } = this.checkIsComponent(classDeclaration);
         return {
@@ -126,6 +133,7 @@ export class ProjectBuild extends Project {
         if (classDeclaration) {
             const extendsClause = classDeclaration.getHeritageClauses()[0]; // Considerando apenas a primeira cláusula "extends"
             const extendsTypeNode = extendsClause ? extendsClause.getTypeNodes()[0] : undefined;
+            console.log("type:extendsClause: ", extendsTypeNode?.getType()?.getText());
 
             if (extendsTypeNode) {
                 const extendedClassName = extendsTypeNode.getText();

@@ -34,7 +34,7 @@ export interface FileInfo {
 }
 
 export function printClassInfo(classInfo: ClassInfo) {
-    console.log(`============classInfo: ${classInfo.className}============`);
+    console.log(`============ classInfo: ${classInfo.className} ============`);
     console.log('extends: ', classInfo.extends);
     console.log('decorators: ', classInfo.decorators);
     console.log('imports: ', classInfo.imports);
@@ -50,7 +50,7 @@ export function printClassInfo(classInfo: ClassInfo) {
 export function printFileInfo(fileInfo: FileInfo) {
     if (fileInfo.classes.length == 0)
         return;
-    console.log("============fileInfo============");
+    console.log("============ fileInfo ============");
     console.log('path: ', fileInfo.path);
     console.log('templatesUrl: ', fileInfo.templatesUrl);
     console.log('styleCode: ', fileInfo.styleCode);
