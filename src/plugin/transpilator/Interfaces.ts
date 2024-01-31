@@ -31,6 +31,7 @@ export interface FileInfo {
     removeDatas: string[];
     startDatas: string[];
     endDatas: string[];
+    imports :{moduleSpecifier: string, namedImports: string[]}[];
 }
 
 export function printClassInfo(classInfo: ClassInfo) {
@@ -58,7 +59,8 @@ export function printFileInfo(fileInfo: FileInfo) {
     console.log('removeDatas: ', fileInfo.removeDatas);
     console.log('startDatas: ', fileInfo.startDatas);
     console.log('endDatas: ', fileInfo.endDatas);
-    for (const classInfo of fileInfo.classes) {
-        printClassInfo(classInfo);
-    }
+    console.log('imports: ', fileInfo.imports);
+    // for (const classInfo of fileInfo.classes) {
+    //     printClassInfo(classInfo);
+    // }
 }

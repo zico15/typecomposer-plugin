@@ -1,17 +1,22 @@
-import { ClassDeclaration, Decorator, Project, SourceFile } from 'ts-morph';
-import { utimesSync } from 'node:fs';
+import { ClassDeclaration, Decorator, Project, SourceFile, SyntaxKind } from 'ts-morph';
+import { utimesSync, readdirSync, statSync } from 'node:fs';
 import { RegisterBuild } from '../base/Register';
 import { StyleBuild } from '../base/Style';
-import { FileInfo, ClassInfo, printFileInfo, ChangeEvent } from './Interfaces';
+import { FileInfo, ClassInfo, ChangeEvent, printFileInfo } from './Interfaces';
 import path from 'node:path';
 import { TemplateBuild } from '../base/Template';
+import { Router } from '../base/RouterController';
 
 export class ProjectBuild extends Project {
 
     public files: Map<string, FileInfo> = new Map<string, FileInfo>();
     public path: string;
+    public projectDir: string = ""
+    public indexPath: string = "";
     public stylePath: string;
     public styleCode: string = "";
+    public pathClassMain: string = "";
+    public routerPath: string = "";
 
     constructor() {
         super();
@@ -22,9 +27,19 @@ export class ProjectBuild extends Project {
         this.stylePath = this.path + "public/style.scss";
     }
 
+
+
+    async buildStart() {
+        const routers = await Router.findRouterTsFiles(this.projectDir);
+        if (routers.length > 0) {
+            this.routerPath = routers[0];
+            await Router.updateRouterFiles(this.routerPath, this.indexPath);
+        }
+    }
+
     public async analyze(path: string, code: string): Promise<string> {
         const sourceFile = this.createSourceFile('dummy.ts', code, { overwrite: true, scriptKind: 3 });
-        const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [], startDatas: [], endDatas: [] };
+        const fileInfo: FileInfo = this.files.get(path) || { sourceFile: sourceFile, classes: [], removeDatas: [], path: path, templatesUrl: [], startDatas: [], endDatas: [], imports: [] };
         const classes = sourceFile.getClasses();
         fileInfo.sourceFile = sourceFile;
         fileInfo.removeDatas = [];
@@ -32,13 +47,14 @@ export class ProjectBuild extends Project {
         fileInfo.endDatas = [];
         fileInfo.path = path;
         fileInfo.templatesUrl = [];
+        printFileInfo(fileInfo);
+        fileInfo.imports = this.getImportInfo(sourceFile);
         fileInfo.classes = classes.map((classDeclaration: ClassDeclaration) => {
-            return this.getClassInofo(sourceFile, classDeclaration);
+            return this.getClassInofo(sourceFile, classDeclaration, fileInfo);
         }).filter((classInfo: ClassInfo) => classInfo.isComponent);
         await RegisterBuild.anliyze(fileInfo);
         await TemplateBuild.anliyze(fileInfo);
         this.files.set(path, fileInfo);
-        printFileInfo(fileInfo);
         return await this.build(fileInfo);
     }
 
@@ -66,7 +82,7 @@ export class ProjectBuild extends Project {
         return await StyleBuild.build(fileInfo, code);
     }
 
-    public getClassInofo(sourceFile: SourceFile, classDeclaration: ClassDeclaration): ClassInfo {
+    public getClassInofo(sourceFile: SourceFile, classDeclaration: ClassDeclaration, fileInfo: FileInfo): ClassInfo {
         const className = classDeclaration.getName();
         const extendsClause = classDeclaration.getExtends()?.getText();
         const constructors = classDeclaration.getConstructors() || [];
@@ -84,7 +100,7 @@ export class ProjectBuild extends Project {
             className,
             extends: extendsClause,
             decorators: decorators,
-            imports: JSON.stringify(this.getImportInfo(sourceFile)),
+            imports: JSON.stringify(fileInfo.imports),
             isComponent: isComponent,
             classDeclaration: classDeclaration,
             registerOptions: {},
@@ -256,6 +272,7 @@ export class ProjectBuild extends Project {
     }
 
     async watchChange(id: string, change: { event: ChangeEvent }) {
+        Router.watchChange(id, change, this);
         if (id.endsWith('.html')) {
             if (change.event != "update") {
                 const fileInfos = await this.isFileTemplate(id);
