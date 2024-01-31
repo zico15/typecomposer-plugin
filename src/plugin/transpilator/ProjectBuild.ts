@@ -1,20 +1,22 @@
-import {ClassDeclaration, Decorator, Project, SourceFile, SyntaxKind} from 'ts-morph';
-import { utimesSync } from 'node:fs';
+import { ClassDeclaration, Decorator, Project, SourceFile, SyntaxKind } from 'ts-morph';
+import { utimesSync, readdirSync, statSync } from 'node:fs';
 import { RegisterBuild } from '../base/Register';
 import { StyleBuild } from '../base/Style';
-import { FileInfo, ClassInfo, printFileInfo, ChangeEvent } from './Interfaces';
+import { FileInfo, ClassInfo, ChangeEvent, printFileInfo } from './Interfaces';
 import path from 'node:path';
 import { TemplateBuild } from '../base/Template';
-
-
+import { Router } from '../base/RouterController';
 
 export class ProjectBuild extends Project {
 
     public files: Map<string, FileInfo> = new Map<string, FileInfo>();
     public path: string;
+    public projectDir: string = ""
+    public indexPath: string = "";
     public stylePath: string;
     public styleCode: string = "";
     public pathClassMain: string = "";
+    public routerPath: string = "";
 
     constructor() {
         super();
@@ -25,35 +27,14 @@ export class ProjectBuild extends Project {
         this.stylePath = this.path + "public/style.scss";
     }
 
-    public checkRouterImport(fileInfo: FileInfo): boolean {
-        if (fileInfo) {
-            const found = fileInfo.imports.some((e) => {
-                return e.moduleSpecifier == "typecompose" && e.namedImports.includes("Router");
-            });
-            if (found) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    public checkRouterCreate(fileInfo: FileInfo): boolean {
-        if (fileInfo) {
-            const found = fileInfo.sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression).some((e) => {
-                const expression = e.getExpression();
-                if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
-                    const propertyAccessExpression = expression.asKind(SyntaxKind.PropertyAccessExpression);
-                    return propertyAccessExpression.getName() === "create" &&
-                      propertyAccessExpression.getExpression().getText() === "Router";
-                }
-                return false;
-            });
 
-            if (found) {
-                return true;
-            }
+    async buildStart() {
+        const routers = await Router.findRouterTsFiles(this.projectDir);
+        if (routers.length > 0) {
+            this.routerPath = routers[0];
+            await Router.updateRouterFiles(this.routerPath, this.indexPath);
         }
-        return false;
     }
 
     public async analyze(path: string, code: string): Promise<string> {
@@ -66,6 +47,7 @@ export class ProjectBuild extends Project {
         fileInfo.endDatas = [];
         fileInfo.path = path;
         fileInfo.templatesUrl = [];
+        printFileInfo(fileInfo);
         fileInfo.imports = this.getImportInfo(sourceFile);
         fileInfo.classes = classes.map((classDeclaration: ClassDeclaration) => {
             return this.getClassInofo(sourceFile, classDeclaration, fileInfo);
@@ -73,13 +55,6 @@ export class ProjectBuild extends Project {
         await RegisterBuild.anliyze(fileInfo);
         await TemplateBuild.anliyze(fileInfo);
         this.files.set(path, fileInfo);
-        if (this.checkRouterImport(fileInfo)) {
-            if (this.checkRouterCreate(fileInfo)) {
-                this.pathClassMain = fileInfo.path;
-                console.log("Found Router.create() call at: ", this.pathClassMain);
-            }
-        }
-        // printFileInfo(fileInfo);
         return await this.build(fileInfo);
     }
 
@@ -287,6 +262,7 @@ export class ProjectBuild extends Project {
     }
 
     async watchChange(id: string, change: { event: ChangeEvent }) {
+        Router.watchChange(id, change, this);
         if (id.endsWith('.html')) {
             if (change.event != "update") {
                 const fileInfos = await this.isFileTemplate(id);

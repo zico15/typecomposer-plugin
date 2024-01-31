@@ -24,7 +24,7 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
         configureServer(server: ViteDevServer) {
         },
         async buildStart() {
-            console.log('buildStart:');
+            await project.buildStart();
         },
         transformIndexHtml(html) {
             if (!html.includes("typecompose-plugin/public/safari-polyfill.ts")) {
@@ -43,9 +43,12 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
 
         },
         async configResolved(config) {
+            project.projectDir = config.root + "/src";
+            project.indexPath = config.root + '/index.html';
             // StyleBuild.clear();
         },
         async load(id) {
+
             if (id.includes(StyleBuild.identifier)) {
                 const fileInfo = Array.from(project.files.values()).find(e => e.virtualFile && id.includes(e.virtualFile));
                 if (fileInfo) {
@@ -70,7 +73,6 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
             }
         },
         async handleHotUpdate({ file, server }) {
-            // console.log('handleHotUpdate:', file);
             if (file.endsWith('.html')) {
                 project.isFileTemplate(file);
                 // console.log('handleHotUpdate:', file);
