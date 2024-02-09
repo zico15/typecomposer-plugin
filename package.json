@@ -47,7 +47,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "copy": "cp -r dist /home/miguel/Documents/zico/typecompose-description/node_modules/typecompose-plugin",
+    "copy": "cp -r dist /Users/ezequiel/Documents/TypeCompose/vite-project/node_modules/typecompose-plugin",
     "build": "esno scripts/build.ts && npm run copy",
     "pub": "npm run build && npm publish --access public --tag latest"
   },

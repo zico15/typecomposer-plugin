@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
-import { ClassInfo, FileInfo } from '../transpilator/Interfaces';
-import { ProjectBuild } from '../transpilator/ProjectBuild';
+import { ClassInfo, FileInfo } from '../Interfaces';
+import { ProjectBuild } from '../ProjectBuild';
 
 export class StyleBuild {
 
@@ -22,6 +22,9 @@ export class StyleBuild {
                     styleComponent += style;
                 }
             });
+            const regex = /\.this\s*\{([^}]*)\}/g;
+            styleComponent = styleComponent.replace(regex, (match, group1) => group1.trim());
+            console.log("styleComponent: ", styleComponent);
         }
         if (styleComponent != "")
             classInfo.styles.push(`${classInfo.registerOptions.tag} {\n${styleComponent.trim()}\n}`.trim());

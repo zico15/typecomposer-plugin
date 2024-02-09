@@ -1,11 +1,12 @@
-import { ClassDeclaration, Decorator, Project, SourceFile, SyntaxKind } from 'ts-morph';
-import { utimesSync, readdirSync, statSync } from 'node:fs';
-import { RegisterBuild } from '../base/Register';
-import { StyleBuild } from '../base/Style';
+import { ClassDeclaration, Decorator, Project, SourceFile } from 'ts-morph';
+import { utimesSync } from 'node:fs';
+import { RegisterBuild } from './base/Register';
+import { StyleBuild } from './base/Style';
 import { FileInfo, ClassInfo, ChangeEvent, printFileInfo } from './Interfaces';
 import path from 'node:path';
-import { TemplateBuild } from '../base/Template';
-import { Router } from '../base/RouterController';
+import { TemplateBuild } from './base/Template';
+import { Router } from './base/RouterController';
+import { Theme } from './base/ThemeController';
 
 export class ProjectBuild extends Project {
 
@@ -27,14 +28,14 @@ export class ProjectBuild extends Project {
         this.stylePath = this.path + "public/style.scss";
     }
 
-
-
     async buildStart() {
         const routers = await Router.findRouterTsFiles(this.projectDir);
         if (routers.length > 0) {
             this.routerPath = routers[0];
             await Router.updateRouterFiles(this.routerPath, this.indexPath);
         }
+        Theme.findFiles(this.projectDir);
+        console.log("buildStart: ", Theme.getFiles());
     }
 
     public async analyze(path: string, code: string): Promise<string> {
@@ -273,6 +274,7 @@ export class ProjectBuild extends Project {
 
     async watchChange(id: string, change: { event: ChangeEvent }) {
         Router.watchChange(id, change, this);
+        Theme.watchChange(id, change, this);
         if (id.endsWith('.html')) {
             if (change.event != "update") {
                 const fileInfos = await this.isFileTemplate(id);

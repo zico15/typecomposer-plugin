@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite'
 import { PWDOptions, PwaBuildPlugin } from "./plugin/pwa";
-import typeComposePlugin from "./plugin/base";
+import typeComposePlugin from "./plugin/transpilator";
 import { BuildPlugin } from './plugin/build';
 import { ProjectBuild } from './plugin/transpilator/ProjectBuild';
 

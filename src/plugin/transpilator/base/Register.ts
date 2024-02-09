@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { FileInfo, ClassInfo } from "../transpilator/Interfaces";
+import { FileInfo, ClassInfo } from "../Interfaces";
 
 
 export interface RegisterOptions {

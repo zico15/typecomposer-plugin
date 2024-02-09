@@ -2,7 +2,7 @@ import { PropertyDeclaration } from 'ts-morph';
 import { StyleBuild } from "./Style";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, normalize, resolve } from "node:path";
-import { FileInfo, ClassInfo } from '../transpilator/Interfaces';
+import { FileInfo, ClassInfo } from '../Interfaces';
 
 
 export interface RefComponentOptions {

@@ -1,7 +1,7 @@
 import { Plugin, ViteDevServer } from 'vite';
-import { StyleBuild } from './Style';
-import { ProjectBuild } from '../transpilator/ProjectBuild';
-import { ChangeEvent } from '../transpilator/Interfaces';
+import { StyleBuild } from './base/Style';
+import { ProjectBuild } from './ProjectBuild';
+import { ChangeEvent } from './Interfaces';
 /**
  * TypeCompose plugin function for project analysis and transformation during pre-build.
  * This plugin is responsible for analyzing the project and applying transformations

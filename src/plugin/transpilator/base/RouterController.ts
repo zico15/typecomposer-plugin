@@ -1,8 +1,8 @@
 
 import path, { basename } from 'node:path';
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { ChangeEvent } from '../transpilator/Interfaces';
-import { ProjectBuild } from '../transpilator/ProjectBuild';
+import { ChangeEvent } from '../Interfaces';
+import { ProjectBuild } from '../ProjectBuild';
 
 
 export namespace Router {

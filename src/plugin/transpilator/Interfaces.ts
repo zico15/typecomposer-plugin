@@ -1,7 +1,13 @@
 import { ClassDeclaration, SourceFile } from "ts-morph";
-import { RegisterOptions } from "../base/Register";
+import { RegisterOptions } from "./base/Register";
 
 export type ChangeEvent = 'create' | 'update' | 'delete';
+
+
+export interface FileTheme {
+    path: string;
+    name: string;
+}
 
 export interface ClassInfo {
     className: string | undefined;
@@ -31,7 +37,7 @@ export interface FileInfo {
     removeDatas: string[];
     startDatas: string[];
     endDatas: string[];
-    imports :{moduleSpecifier: string, namedImports: string[]}[];
+    imports: { moduleSpecifier: string, namedImports: string[] }[];
 }
 
 export function printClassInfo(classInfo: ClassInfo) {
