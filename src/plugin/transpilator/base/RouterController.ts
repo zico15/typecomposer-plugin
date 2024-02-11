@@ -3,7 +3,7 @@ import path, { basename } from 'node:path';
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { ChangeEvent } from '../Interfaces';
 import { ProjectBuild } from '../ProjectBuild';
-
+import {platform} from "node:os";
 
 export namespace Router {
 
@@ -31,7 +31,15 @@ export namespace Router {
 
     export async function updateRouterFiles(routerPath: string, indexPath: string): Promise<void> {
         const regex = /<script(?:\s[^>]*)?\srouter(?:\s[^>]*)?>\s*<\/script>/g;
+        const operatingSystem = platform();
 
+        console.log("Router path: ", routerPath);
+        console.log("os: ", operatingSystem);
+        if (operatingSystem == "win32") {
+            console.log("entrou aqui");
+            routerPath = routerPath.replace(/\\/g, '/');
+            console.log("Router path: ", routerPath);
+        }
         if (routerPath.includes('/src'))
             routerPath = '/src' + routerPath.split('/src')[1];
         if (routerPath)
