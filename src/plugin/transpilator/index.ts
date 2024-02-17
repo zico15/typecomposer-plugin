@@ -10,7 +10,7 @@ import { ChangeEvent } from './Interfaces';
  * @param project - Object that represents the project to be built.
  * @returns A plugin that analyzes and transforms the code during pre-build.
  */
-export default function typeComposePlugin(project: ProjectBuild): Plugin {
+export default function typeComposerPlugin(project: ProjectBuild): Plugin {
 
     return {
         name: 'typescript-elements',
@@ -27,11 +27,11 @@ export default function typeComposePlugin(project: ProjectBuild): Plugin {
             await project.buildStart();
         },
         transformIndexHtml(html) {
-            if (!html.includes("typecompose-plugin/public/safari-polyfill.ts")) {
+            if (!html.includes("typecomposer-plugin/public/safari-polyfill.ts")) {
                 html = html.replace("<head>", `<head>
                 <script
                 type="module"
-                src="/node_modules/typecompose-plugin/public/safari-polyfill.ts"
+                src="/node_modules/typecomposer-plugin/public/safari-polyfill.ts"
               ></script>`);
             }
             return html;

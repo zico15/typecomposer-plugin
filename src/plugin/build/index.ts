@@ -12,13 +12,13 @@ export function BuildPlugin(project: ProjectBuild): Plugin {
     let indexjs: string | undefined = undefined
 
     return {
-        name: 'typecompose:pwa',
+        name: 'typecomposer-pluginr-plugin:pwa',
         enforce: 'pre',
         apply: 'build',
         transformIndexHtml: {
             order: 'post',
             handler(html) {
-                const regex = /<script\s+type="module"\s+src="\/node_modules\/typecompose-plugin\/public\/safari-polyfill\.ts"[^>]*><\/script>/g;
+                const regex = /<script\s+type="module"\s+src="\/node_modules\/typecomposer-plugin\/public\/safari-polyfill\.ts"[^>]*><\/script>/g;
 
                 html = html.replace(regex, '');
                 // console.log('BuildPlugin: transformIndexHtml: ', html)
@@ -84,7 +84,7 @@ export function BuildPlugin(project: ProjectBuild): Plugin {
                 // if (config) {
                 //     const file = `${config.build.outDir}/index.html`
                 //     let code = readFileSync(file, 'utf-8')
-                //     const regex = /<script\s+type="module"\s+src="\/node_modules\/typecompose-plugin\/public\/safari-polyfill\.ts"><\/script>/g;
+                //     const regex = /<script\s+type="module"\s+src="\/node_modules\/typecomposer-plugin\/public\/safari-polyfill\.ts"><\/script>/g;
                 //     writeFileSync(file, code.replace(regex, ''));
                 // }
             },

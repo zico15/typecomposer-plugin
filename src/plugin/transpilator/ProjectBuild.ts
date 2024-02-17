@@ -1,5 +1,5 @@
 import { ClassDeclaration, Decorator, Project, SourceFile } from 'ts-morph';
-import { utimesSync } from 'node:fs';
+import { utimesSync, readdirSync, statSync, existsSync, readFileSync } from 'node:fs';
 import { RegisterBuild } from './base/Register';
 import { StyleBuild } from './base/Style';
 import { FileInfo, ClassInfo, ChangeEvent, printFileInfo } from './Interfaces';
@@ -21,11 +21,33 @@ export class ProjectBuild extends Project {
 
     constructor() {
         super();
-        this.addSourceFilesAtPaths('node_modules/typecompose/**/*.ts');
-        this.path = this.getSourceFiles().find(e => e.getFilePath().includes("node_modules/typecompose-plugin"))?.getFilePath() || "";
+        this.path = this.getSourceFiles().find(e => e.getFilePath().includes("node_modules/typecomposer-plugin"))?.getFilePath() || "";
         if (this.path != "")
-            this.path = this.path.split("node_modules/typecompose-plugin/")[0] + "node_modules/typecompose-plugin/";
+            this.path = this.path.split("node_modules/typecomposer-plugin/")[0] + "node_modules/typecomposer-plugin/";
         this.stylePath = this.path + "public/style.scss";
+        this.load_node_modules_dependencys();
+    }
+
+    public async load_node_modules_dependencys() {
+        const listaDependencies: any[] = ['node_modules/typecomposer'];
+        try {
+            const itens = readdirSync("node_modules");
+            const pacotes = itens.filter(item => statSync(path.join("node_modules", item)).
+                isDirectory() && item !== "." && item !== "..").map(item => path.join("node_modules", path.join(item, "package.json"))).filter(item => existsSync(item));
+            for (const packageJsonPath of pacotes) {
+                const packageJsonContent = readFileSync(packageJsonPath, "utf-8");
+                const packageJson = JSON.parse(packageJsonContent);
+                const dependencies = packageJson.dependencies || {};
+                const devDependencies = packageJson.devDependencies || {};
+                if (dependencies?.typecomposer || devDependencies?.typecomposer)
+                    listaDependencies.push(packageJsonPath.replace("package.json", ""));
+            }
+        } catch (error) {
+            console.log("error load_node_modules_dependencys: ", error);
+        }
+        for (const dependencie of listaDependencies) {
+            this.addSourceFilesAtPaths(`${dependencie}/**/*.ts`);
+        }
     }
 
     async buildStart() {
@@ -57,6 +79,10 @@ export class ProjectBuild extends Project {
         await TemplateBuild.anliyze(fileInfo);
         this.files.set(path, fileInfo);
         return await this.build(fileInfo);
+    }
+
+    private async load_node_modules() {
+
     }
 
     private async build(fileInfo: FileInfo) {
@@ -130,7 +156,7 @@ export class ProjectBuild extends Project {
     } {
         if (sourceFile && classDeclaration && classDeclaration.getImplements().map(e => e.getText()).includes('IComponent')) {
             const i = sourceFile.getFilePath();
-            if (i.includes("node_modules/typecompose"))
+            if (i.includes("node_modules/typecomposer"))
                 return { isComponent: true, paranet: { path: i.includes(".d.ts") ? i.replace(".d.ts", ".js") : i, className: classDeclaration.getName() || "" } };
         }
         return { isComponent: false, paranet: undefined };

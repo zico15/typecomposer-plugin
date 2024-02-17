@@ -1,21 +1,21 @@
 import type { Plugin } from 'vite'
 import { PWDOptions, PwaBuildPlugin } from "./plugin/pwa";
-import typeComposePlugin from "./plugin/transpilator";
+import typeComposerPlugin from "./plugin/transpilator";
 import { BuildPlugin } from './plugin/build';
 import { ProjectBuild } from './plugin/transpilator/ProjectBuild';
 
-export interface TypeComposeOptions {
+export interface TypeComposerOptions {
     pwa?: PWDOptions;
 }
 
-export default function TypeCompose(options: TypeComposeOptions = {}): Plugin<any>[] {
+export default function TypeComposer(options: TypeComposerOptions = {}): Plugin<any>[] {
     const { pwa } = options;
     const project = new ProjectBuild();
-    const plugins: Plugin<any>[] = [typeComposePlugin(project), BuildPlugin(project)];
+    const plugins: Plugin<any>[] = [typeComposerPlugin(project), BuildPlugin(project)];
     if (pwa) {
         console.log('activate pwa build');
         // console.log('options: ', pwa);
         plugins.push(PwaBuildPlugin(pwa));
     }
-    return [typeComposePlugin(project)];
+    return [typeComposerPlugin(project)];
 }

@@ -1,17 +1,17 @@
 {
-  "name": "typecompose-plugin",
+  "name": "typecomposer-plugin",
   "type": "module",
-  "version": "0.1.12",
+  "version": "0.0.1",
   "packageManager": "pnpm@8.11.0",
-  "description": "TypeCompose plugin for Vite",
+  "description": "TypeComposer plugin for Vite",
   "author": "zico15 <zequielzico@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/zico15/typecompose-plugin#readme",
+  "homepage": "https://github.com/zico15/typecomposer-plugin#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zico15/typecompose-plugin.git"
+    "url": "https://github.com/zico15/typecomposer-plugin.git"
   },
-  "bugs": "https://github.com/zico15/typecompose-plugin/issues",
+  "bugs": "https://github.com/zico15/typecomposer-plugin/issues",
   "keywords": [
     "vite",
     "vite-plugin",
@@ -47,7 +47,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "copy": "cp -r dist /Users/ezequiel/Documents/TypeCompose/vite-project/node_modules/typecompose-plugin",
+    "copy": "cp -r dist /Users/ezequiel/Documents/TypeCompose/vite-project/node_modules/typecomposer-plugin",
     "build": "esno scripts/build.ts && npm run copy",
     "pub": "npm run build && npm publish --access public --tag latest"
   },
