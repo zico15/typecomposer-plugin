@@ -81,10 +81,6 @@ export class ProjectBuild extends Project {
         return await this.build(fileInfo);
     }
 
-    private async load_node_modules() {
-
-    }
-
     private async build(fileInfo: FileInfo) {
         for await (const classInfo of fileInfo.classes) {
             this.insertConstructorDatas(classInfo);
@@ -242,7 +238,7 @@ export class ProjectBuild extends Project {
             statements: [],
             parameters: []
         });
-        disconnectedCallback?.insertStatements(0, 'this.unmount?.(); this?.destructor(); this._styleRef?.disconnectedCallback();this.removeEvents?.();');
+        disconnectedCallback?.insertStatements(0, 'this.unmount?.();this._styleRef?.disconnectedCallback();this.removeEvents?.();');
     }
 
     public sendServerUpdate(fileInfo: FileInfo) {
