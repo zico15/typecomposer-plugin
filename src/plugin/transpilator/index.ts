@@ -32,7 +32,12 @@ export default function typeComposerPlugin(project: ProjectBuild): Plugin {
                 <script
                 type="module"
                 src="/node_modules/typecomposer-plugin/public/safari-polyfill.ts"
-              ></script>`);
+              ></script>
+              <script
+                type="module"
+                src="/node_modules/typecomposer/dist/esm/global/global.js"
+              ></script>
+              `);
             }
             return html;
         },
