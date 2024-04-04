@@ -33,10 +33,6 @@ export default function typeComposerPlugin(project: ProjectBuild): Plugin {
                 type="module"
                 src="/node_modules/typecomposer-plugin/public/safari-polyfill.ts"
               ></script>
-              <script
-                type="module"
-                src="/node_modules/typecomposer/dist/esm/global/global.js"
-              ></script>
               `);
             }
             return html;

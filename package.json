@@ -1,7 +1,7 @@
 {
   "name": "typecomposer-plugin",
   "type": "module",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "packageManager": "pnpm@8.11.0",
   "description": "TypeComposer plugin for Vite",
   "author": "zico15 <zequielzico@gmail.com>",
