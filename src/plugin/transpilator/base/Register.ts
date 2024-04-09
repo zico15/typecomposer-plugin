@@ -7,6 +7,7 @@ export interface RegisterOptions {
     templateUrl?: string;
     extends?: string;
     styleUrl?: string;
+    scoped?: boolean;
 }
 
 export class RegisterBuild {
@@ -28,8 +29,10 @@ export class RegisterBuild {
     private static async readRegister(fileInfo: FileInfo, classInfo: ClassInfo) {
         const decorators = classInfo.classDeclaration.getDecorators();
         const register = decorators.find(e => e.getName() == "Register");
+        const scoped = decorators.find(e => e.getName() == "scoped");
         const registerArgs = register?.getArguments().map(arg => arg.getText().replace(/,(?=\s*})/, '')).join(", ").replace(/(\w+):/g, '"$1":').replace(/'/g, '"');
-
+        if (scoped)
+            classInfo.isExported = false;
         if (register)
             fileInfo.removeDatas.push(register.getText());
         try {
@@ -37,6 +40,8 @@ export class RegisterBuild {
         } catch (error) {
             console.log("error: ", error)
         }
+        if (classInfo.registerOptions?.scoped)
+            classInfo.isExported = !classInfo.registerOptions.scoped;
         if (classInfo.registerOptions?.extends == undefined)
             await this.readExtends(classInfo);
         if (classInfo.registerOptions.tag == undefined)
