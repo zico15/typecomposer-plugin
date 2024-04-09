@@ -73,7 +73,7 @@ export class ProjectBuild extends Project {
         printFileInfo(fileInfo);
         fileInfo.imports = this.getImportInfo(sourceFile);
         fileInfo.classes = classes.map((classDeclaration: ClassDeclaration) => {
-            return this.getClassInofo(sourceFile, classDeclaration, fileInfo);
+            return this.getClassInofo(classDeclaration, fileInfo);
         }).filter((classInfo: ClassInfo) => classInfo.isComponent);
         await RegisterBuild.anliyze(fileInfo);
         await TemplateBuild.anliyze(fileInfo);
@@ -105,7 +105,7 @@ export class ProjectBuild extends Project {
         return await StyleBuild.build(fileInfo, code);
     }
 
-    public getClassInofo(sourceFile: SourceFile, classDeclaration: ClassDeclaration, fileInfo: FileInfo): ClassInfo {
+    public getClassInofo(classDeclaration: ClassDeclaration, fileInfo: FileInfo): ClassInfo {
         const className = classDeclaration.getName();
         const extendsClause = classDeclaration.getExtends()?.getText();
         const constructors = classDeclaration.getConstructors() || [];
@@ -129,6 +129,7 @@ export class ProjectBuild extends Project {
             registerOptions: {},
             constructorDatas: [],
             styles: [],
+            isExported: classDeclaration.isExported(),
             afterClassDatas: [],
             refComponents: [],
             paranet: paranet,

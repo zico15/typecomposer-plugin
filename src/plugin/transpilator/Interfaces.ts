@@ -20,6 +20,7 @@ export interface ClassInfo {
     constructorDatas: string[];
     afterClassDatas: string[];
     styles: string[];
+    isExported: boolean;
     refComponents: { name: string, id: string }[];
     paranet: {
         path: string;

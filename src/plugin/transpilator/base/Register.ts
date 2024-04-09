@@ -11,11 +11,16 @@ export interface RegisterOptions {
 
 export class RegisterBuild {
 
-    private static converClasNameToTag(className: string | undefined): string {
-        if (className == undefined)
+    private static index: number = 1;
+
+    private static converClasNameToTag(classInfo: ClassInfo): string {
+        if (classInfo.className == undefined)
             return `base-${Math.random().toString(36).substring(7)}-element`;
-        let name = className.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/(\d+)([A-Z])/g, '$1-$2').toLowerCase()
-        if (!name.includes("-"))
+        let name = classInfo.className.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/(\d+)([A-Z])/g, '$1-$2').toLowerCase()
+        if (classInfo.isExported == false) {
+            RegisterBuild.index++
+            name = `tmp-${name}-${Math.random().toString(36).substring(7) + RegisterBuild.index.toString()}`;
+        } else if (!name.includes("-"))
             name = name + "-element";
         return name
     }
@@ -35,7 +40,7 @@ export class RegisterBuild {
         if (classInfo.registerOptions?.extends == undefined)
             await this.readExtends(classInfo);
         if (classInfo.registerOptions.tag == undefined)
-            classInfo.registerOptions.tag = this.converClasNameToTag(classInfo.className);
+            classInfo.registerOptions.tag = this.converClasNameToTag(classInfo);
     }
 
     private static async readExtends(classInfo: ClassInfo) {
