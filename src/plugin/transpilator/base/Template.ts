@@ -13,17 +13,6 @@ export interface RefComponentOptions {
 
 export class TemplateBuild {
 
-    private static bases: string[] = ["div", "p", "a", "img", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "span", "strong", "em", "br", "hr", "table", "tr", "th", "td", "form", "input", "button", "textarea", "label", "select", "iframe", "audio", "video", "canvas", "svg", "footer", "header", "nav", "main", "section", "article", "details", "summary"];
-
-    private static replace_html_tags(html: string): string {
-        for (let i = 0; i < TemplateBuild.bases.length; i++) {
-            const base = TemplateBuild.bases[i];
-            html = html.replaceAll(`<${base} `, `<${base} is="base-${base}-element" `);
-            html = html.replaceAll(`<${base}>`, `<${base} is="base-${base}-element" `);
-        }
-        return html.replace(/<!--[\s\S]*?-->/g, '');
-    }
-
     private static getTemplateUrl(fileInfo: FileInfo, classInfo: ClassInfo, templateUrl?: string): string | undefined {
         if (templateUrl)
             templateUrl = templateUrl?.includes("src/") ? classInfo.registerOptions.templateUrl : "src/" + classInfo.registerOptions.templateUrl;
@@ -43,7 +32,6 @@ export class TemplateBuild {
             return;
         try {
             let html = readFileSync(templateUrl, 'utf-8');
-            html = TemplateBuild.replace_html_tags(html);
             html = StyleBuild.read(classInfo, html).trim();
             classInfo.constructorDatas.push(`this.innerHTML = \`${html}\`;`);
             templateUrl = resolve(templateUrl);
