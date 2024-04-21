@@ -33,7 +33,6 @@ export function sw(config: ResolvedConfig, options: PWDOptions) {
   const files = staticAssets.map((asset) => {
     return `'${asset}'`
   });
-  console.log('staticAssets: ', staticAssets);
   return {
     fileName: 'sw.js',
     staticAssets,

@@ -74,7 +74,6 @@ export namespace Theme {
                     Theme.putFileTheme(id, getFileName(basename(id)) as string);
                 }
             }
-            console.log('ThemeController: ', Theme.getFiles());
         }
     }
 }

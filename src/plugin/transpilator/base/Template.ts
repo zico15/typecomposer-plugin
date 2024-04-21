@@ -21,7 +21,6 @@ export class TemplateBuild {
         if (templateUrl == undefined)
             return undefined;
         templateUrl = normalize(templateUrl);
-        // console.log("normalize: ", normalize(templateUrl), " => ", existsSync(templateUrl));
         if (templateUrl == undefined || !existsSync(templateUrl))
             return undefined;
         return templateUrl;
@@ -68,7 +67,6 @@ export class TemplateBuild {
         }
         if (templateUrl == undefined)
             return;
-        console.log("variaveis: ", variables.map(prop => prop.getText()));
         for (let i = 0; i < variables.length; i++) {
             const variable = variables[i];
             const name = variable.getName();
@@ -83,15 +81,6 @@ export class TemplateBuild {
             await StyleBuild.anliyze(fileInfo, classInfo);
             await this.readHtml(fileInfo, classInfo, classInfo.registerOptions?.templateUrl);
             await this.readRefComponent(fileInfo, classInfo, classInfo.registerOptions?.templateUrl);
-            // if (classInfo.className == "CardDescription") {
-            //     // console.log("classInfo: ", classInfo);
-            //     // Variable in class
-            //     // console.log("Variable in class");
-            //     // classInfo.classDeclaration.getProperties().forEach((variavel) => {
-            //     //     console.log("Nome da variável:", variavel.getName());
-            //     //     console.log("Tipo da variável:", variavel.getType().getText());
-            //     // });
-            // }
         }
     }
 

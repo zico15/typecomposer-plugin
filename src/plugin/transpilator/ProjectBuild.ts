@@ -7,6 +7,8 @@ import path from 'node:path';
 import { TemplateBuild } from './base/Template';
 import { Router } from './base/RouterController';
 import { Theme } from './base/ThemeController';
+import { RefBuild } from './base/Ref';
+import { Debuger } from '../Debug/Log';
 
 export class ProjectBuild extends Project {
 
@@ -43,7 +45,7 @@ export class ProjectBuild extends Project {
                     listaDependencies.push(packageJsonPath.replace("package.json", ""));
             }
         } catch (error) {
-            console.log("error load_node_modules_dependencys: ", error);
+            Debuger.error("error load_node_modules_dependencys: ", error);
         }
         for (const dependencie of listaDependencies) {
             this.addSourceFilesAtPaths(`${dependencie}/**/*.ts`);
@@ -57,7 +59,7 @@ export class ProjectBuild extends Project {
             await Router.updateRouterFiles(this.routerPath, this.indexPath);
         }
         Theme.findFiles(this.projectDir);
-        console.log("buildStart: ", Theme.getFiles());
+        Debuger.log("buildStart: ", Theme.getFiles());
     }
 
     public async analyze(path: string, code: string): Promise<string> {
@@ -77,6 +79,7 @@ export class ProjectBuild extends Project {
         }).filter((classInfo: ClassInfo) => classInfo.isComponent);
         await RegisterBuild.anliyze(fileInfo);
         await TemplateBuild.anliyze(fileInfo);
+        await RefBuild.anliyze(fileInfo);
         this.files.set(path, fileInfo);
         return await this.build(fileInfo);
     }
@@ -109,14 +112,6 @@ export class ProjectBuild extends Project {
         const className = classDeclaration.getName();
         const extendsClause = classDeclaration.getExtends()?.getText();
         const constructors = classDeclaration.getConstructors() || [];
-        if (constructors.length > 0) {
-            const p = constructors[0].getParameters().map((param) => { return { name: param.getName(), type: param.getType().getText() } });
-            console.log("constructor: ", p);
-        }
-        else
-            console.log("constructors: ", constructors.length);
-
-
         const decorators = classDeclaration.getDecorators()?.map((decorator: Decorator) => decorator.getText()) || [];
         const { isComponent, paranet } = this.checkIsComponent(classDeclaration);
         return {
@@ -173,7 +168,6 @@ export class ProjectBuild extends Project {
         if (classDeclaration) {
             const extendsClause = classDeclaration.getHeritageClauses()[0]; // Considerando apenas a primeira cláusula "extends"
             const extendsTypeNode = extendsClause ? extendsClause.getTypeNodes()[0] : undefined;
-            console.log("type:extendsClause: ", extendsTypeNode?.getType()?.getText());
 
             if (extendsTypeNode) {
                 const extendedClassName = extendsTypeNode.getText();
@@ -216,26 +210,15 @@ export class ProjectBuild extends Project {
             });
         }
         catch (__) {
-            console.log("Error: ", __);
+            Debuger.error("Error: ", __);
         }
     }
 
     private injectFunctions(sourceFile: SourceFile, classDeclaration: ClassDeclaration) {
-        // const connectedCallback = classDeclaration.getMethod("connectedCallback") || classDeclaration.addMethod({
-        //     name: "connectedCallback",
-        //     isAsync: false,
-        //     isStatic: false,
-        //     returnType: "void",
-        //     statements: [],
-        //     parameters: []
-        // });
-        // connectedCallback?.insertStatements(0, 'this.onInit();');
-
         const disconnectedCallback = classDeclaration.getMethod("disconnectedCallback") || classDeclaration.addMethod({
             name: "disconnectedCallback",
             isAsync: false,
             isStatic: false,
-            returnType: "void",
             statements: [],
             parameters: []
         });
@@ -249,29 +232,9 @@ export class ProjectBuild extends Project {
 
     public async transform(code: string, id: string): Promise<string> {
         if (id.endsWith('.ts') || id.endsWith('.js') || id.endsWith('.tsx') || id.endsWith('.jsx')) {
-
-            // // code = 
-            // if (id.includes("main.ts")) {
-            //     // const stylePath = project.path + "public/style.scss";
-            //     // console.log('transform:', stylePath, " isExists:", existsSync(stylePath));
-            //     // const styleBase = `
-            //     // body {
-            //     //     background-color: red !important;
-            //     // };
-            //     // `
-            //     // writeFileSync(stylePath, styleBase);
-            //     // execFileSync()
-            // }
-            // console.log('transform:', id);
             return await this.analyze(id, code);
         }
         else if (id.includes(StyleBuild.identifier)) {
-            // console.log('transform:', id);
-            // const fileInfo = Array.from(project.files.values()).find(e => e.virtualFile && id.includes(e.virtualFile));
-            // if (fileInfo) {
-            //     // console.log('styleCode: ', project.styleCode);
-            //     return fileInfo.styleCode;
-            // }
         }
         return code;
     }
@@ -291,7 +254,6 @@ export class ProjectBuild extends Project {
                 }
             }
         }
-        console.log("isFileTemplate: ", fileInfos.length);
         return fileInfos;
     }
 

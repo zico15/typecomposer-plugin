@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { FileInfo, ClassInfo } from "../Interfaces";
+import { Debuger } from "../../Debug/Log";
 
 
 export interface RegisterOptions {
@@ -38,7 +39,7 @@ export class RegisterBuild {
         try {
             classInfo.registerOptions = JSON.parse(registerArgs || "{}");
         } catch (error) {
-            console.log("error: ", error)
+            Debuger.error("error: ", error)
         }
         if (classInfo.registerOptions?.scoped)
             classInfo.isExported = !classInfo.registerOptions.scoped;
@@ -66,7 +67,7 @@ export class RegisterBuild {
                 }
             }
             catch (error) {
-                console.log("error: ", error)
+                Debuger.error("error: ", error)
             }
         }
     }

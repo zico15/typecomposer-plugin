@@ -3,6 +3,7 @@ import type { Plugin, ResolvedConfig } from 'vite'
 import { sw } from './serviceWorker';
 import { PWAManifest } from './types';
 import { register } from './register';
+import { Debuger } from '../Debug/Log';
 
 
 export interface PWDOptions {
@@ -72,7 +73,6 @@ export function PwaBuildPlugin(options: PWDOptions): Plugin {
             for (const key in bundle) {
                 if (bundle[key].type == 'chunk')
                     indexjs = bundle[key].fileName
-                // console.log('bundle', bundle[key].fileName, bundle[key].type)
             }
         },
         closeBundle: {
@@ -82,10 +82,10 @@ export function PwaBuildPlugin(options: PWDOptions): Plugin {
                 if (options.manifest && config && indexjs) {
                     writeFileSync(`${config.build.outDir}/manifest.webmanifest`, JSON.stringify(options.manifest))
                     await injectServiceWorker(config, options, indexjs);
-                    console.log('closeBundle');
+                    Debuger.log('closeBundle');
                 }
                 else
-                    console.log('no manifest');
+                    Debuger.warn('no manifest');
             },
         },
         async buildEnd(error) {
