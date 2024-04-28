@@ -27,14 +27,6 @@ export default function typeComposerPlugin(project: ProjectBuild): Plugin {
             await project.buildStart();
         },
         transformIndexHtml(html) {
-            if (!html.includes("typecomposer-plugin/public/safari-polyfill.ts")) {
-                html = html.replace("<head>", `<head>
-                <script
-                type="module"
-                src="/node_modules/typecomposer-plugin/public/safari-polyfill.ts"
-              ></script>
-              `);
-            }
             return html;
         },
         generateBundle(options, bundle) {

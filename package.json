@@ -1,7 +1,7 @@
 {
   "name": "typecomposer-plugin",
   "type": "module",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "packageManager": "pnpm@8.11.0",
   "description": "TypeComposer plugin for Vite",
   "author": "zico15 <zequielzico@gmail.com>",
@@ -40,14 +40,13 @@
   "files": [
     "*.d.ts",
     "dist",
-    "pwa",
-    "public"
+    "pwa"
   ],
   "engines": {
     "node": ">=16.0.0"
   },
   "scripts": {
-    "copy": "cp -r dist /Users/ezequiel/Documents/TypeCompose/create-typecompose/template-typecomposer-js/node_modules/typecomposer-plugin",
+    "copy": "cp -r dist /Users/ezequiel/Documents/TypeCompose/test-scss/node_modules/typecomposer-plugin",
     "build": "esno scripts/build.ts && npm run copy",
     "pub": "npm run build && npm publish --access public --tag latest"
   },

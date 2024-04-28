@@ -18,9 +18,6 @@ export function BuildPlugin(project: ProjectBuild): Plugin {
         transformIndexHtml: {
             order: 'post',
             handler(html) {
-                const regex = /<script\s+type="module"\s+src="\/node_modules\/typecomposer-plugin\/public\/safari-polyfill\.ts"[^>]*><\/script>/g;
-
-                html = html.replace(regex, '');
                 return html
 
             },
@@ -78,12 +75,6 @@ export function BuildPlugin(project: ProjectBuild): Plugin {
                     code = safariPolyfill + code;
                     writeFileSync(file, code);
                 }
-                // if (config) {
-                //     const file = `${config.build.outDir}/index.html`
-                //     let code = readFileSync(file, 'utf-8')
-                //     const regex = /<script\s+type="module"\s+src="\/node_modules\/typecomposer-plugin\/public\/safari-polyfill\.ts"><\/script>/g;
-                //     writeFileSync(file, code.replace(regex, ''));
-                // }
             },
         },
         async buildEnd(error) {
