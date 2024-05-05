@@ -111,7 +111,6 @@ export class ProjectBuild extends Project {
     public getClassInofo(classDeclaration: ClassDeclaration, fileInfo: FileInfo): ClassInfo {
         const className = classDeclaration.getName();
         const extendsClause = classDeclaration.getExtends()?.getText();
-        const constructors = classDeclaration.getConstructors() || [];
         const decorators = classDeclaration.getDecorators()?.map((decorator: Decorator) => decorator.getText()) || [];
         const { isComponent, paranet } = this.checkIsComponent(classDeclaration);
         return {
@@ -215,6 +214,15 @@ export class ProjectBuild extends Project {
     }
 
     private injectFunctions(sourceFile: SourceFile, classDeclaration: ClassDeclaration) {
+        const connectedCallback = classDeclaration.getMethod("connectedCallback") || classDeclaration.addMethod({
+            name: "connectedCallback",
+            isAsync: false,
+            isStatic: false,
+            returnType: "void",
+            statements: [],
+            parameters: []
+        });
+        connectedCallback?.insertStatements(0, 'this.onConnected();');
         const disconnectedCallback = classDeclaration.getMethod("disconnectedCallback") || classDeclaration.addMethod({
             name: "disconnectedCallback",
             isAsync: false,
@@ -222,7 +230,7 @@ export class ProjectBuild extends Project {
             statements: [],
             parameters: []
         });
-        disconnectedCallback?.insertStatements(0, 'this.unmount?.();this._styleRef?.disconnectedCallback();this.removeEvents?.();');
+        disconnectedCallback?.insertStatements(0, 'this.unmount?.();this._styleRef?.disconnectedCallback();this.removeEvents?.(); this.onDisconnected();');
     }
 
     public sendServerUpdate(fileInfo: FileInfo) {
