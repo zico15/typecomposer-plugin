@@ -9,6 +9,8 @@ import { Router } from './base/RouterController';
 import { Theme } from './base/ThemeController';
 import { RefBuild } from './base/Ref';
 import { Debuger } from '../Debug/Log';
+import { TypeComposerOptions } from '../..';
+import * as os from 'os';
 
 export class ProjectBuild extends Project {
 
@@ -20,8 +22,9 @@ export class ProjectBuild extends Project {
     public styleCode: string = "";
     public pathClassMain: string = "";
     public routerPath: string = "";
+    public outputDir: string = "";
 
-    constructor() {
+    constructor(public options: TypeComposerOptions) {
         super();
         this.path = this.getSourceFiles().find(e => e.getFilePath().includes("node_modules/typecomposer-plugin"))?.getFilePath() || "";
         if (this.path != "")
@@ -276,5 +279,11 @@ export class ProjectBuild extends Project {
                 }
             }
         }
+    }
+
+    public static normalizePath(path: string): string {
+        if (path && os.platform() == "win32")
+            return path.replace(/\\/g, "/");
+        return path;
     }
 }

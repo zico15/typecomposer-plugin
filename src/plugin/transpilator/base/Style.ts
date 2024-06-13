@@ -1,3 +1,4 @@
+
 import { existsSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
 import { ClassInfo, FileInfo } from '../Interfaces';
@@ -39,7 +40,7 @@ export class StyleBuild {
             styleUrl = join(dirname(fileInfo.path), `${classInfo.className}.scss`);
         if (styleUrl == undefined)
             return undefined;
-        styleUrl = normalize(styleUrl);
+        styleUrl = ProjectBuild.normalizePath(normalize(styleUrl));
         if (styleUrl && existsSync(styleUrl))
             return styleUrl;
         styleUrl = join(dirname(fileInfo.path), `${classInfo.className}.css`);
@@ -47,7 +48,8 @@ export class StyleBuild {
         return existsSync(styleUrl) ? styleUrl : undefined;
     }
     public static async anliyze(fileInfo: FileInfo, classInfo: ClassInfo) {
-        classInfo.registerOptions.styleUrl = await this.getStyleUrl(fileInfo, classInfo, classInfo.registerOptions?.styleUrl);
+        let styleUrl = await this.getStyleUrl(fileInfo, classInfo, classInfo.registerOptions?.styleUrl);
+        classInfo.registerOptions.styleUrl = styleUrl;
     }
 
     public static getStyleCode(fileInfo: FileInfo): string {
@@ -78,10 +80,7 @@ export class StyleBuild {
             fileInfo.virtualFile = undefined;
         for await (const classInfo of fileInfo.classes) {
             if (classInfo.registerOptions?.styleUrl && existsSync(classInfo.registerOptions.styleUrl)) {
-                // se comeca com src/ traforma ./
                 let url = classInfo.registerOptions.styleUrl;
-                // if (url.includes("src/"))
-                //     url = "/" + url.split("src/")[1];
                 code = `import "${url}";\n${code}`;
             }
         }
